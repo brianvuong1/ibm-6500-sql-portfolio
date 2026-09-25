@@ -14,7 +14,7 @@ format:
 
 # Course-Completion Evidence
 
-I completed the DataCamp Introduction to SQL course on [ENTER DATE HERE].
+I completed the DataCamp Introduction to SQL course on November 25, 2025 (this was assigned from last year's IBM 6010 Fall 2025 course).
 
 ![DataCamp Introduction to SQL Certificate](images/introduction-to-sql-certificate.png)
 
