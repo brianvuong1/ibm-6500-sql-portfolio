@@ -14,3 +14,18 @@ This portfolio contains my DataCamp course-completion evidence and learning note
 - [Introduction to SQL](introduction-to-sql.html)
 - Introduction to BigQuery — To be completed
 - Intermediate SQL — To be completed
+
+
+
+# IBM 6500 SQL and BigQuery Learning Portfolio
+
+**Student:** Brian Vuong  
+**Course:** IBM 6500
+
+This portfolio contains my DataCamp course-completion evidence and learning notes for SQL and BigQuery.
+
+## Reports
+
+- [Introduction to SQL](introduction-to-sql.html)
+- [Introduction to BigQuery](introduction-to-bigquery.html)
+- Intermediate SQL (to be completed)
