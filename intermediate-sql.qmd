@@ -1,0 +1,207 @@
+---
+title: "Intermediate SQL: Course Completion and Learning Notes"
+author: "Brian Vuong"
+date: today
+
+format:
+  html:
+    toc: true
+    toc-title: "Contents"
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true
+    embed-resources: true
+---
+
+# Course-Completion Evidence
+
+I completed the DataCamp **Intermediate SQL** course on **[add completion date]** through the IBM 6500 DataCamp classroom.
+
+> **Evidence to add:** Save the DataCamp certificate or completion statement as `images/intermediate-sql-certificate.png`, then replace this note with the image below. The screenshot should show my name and the course title while excluding unnecessary account information.
+
+![DataCamp Intermediate SQL certificate](images/intermediate-sql-certificate.png)
+
+# Learning Notes and Key Takeaways
+
+## Data Aggregation
+
+### Main Ideas
+
+Data aggregation reduces many detail rows into useful summary values. The `COUNT()`, `SUM()`, `AVG()`, `MIN()`, and `MAX()` functions answer questions such as how many records exist, how much revenue was generated, or what the typical value was. `GROUP BY` creates one summary row for each category, while `HAVING` filters groups after aggregation.
+
+### Important SQL Syntax
+
+- `COUNT(*)` counts rows, while `COUNT(column_name)` counts non-null values.
+- `SUM()`, `AVG()`, `MIN()`, and `MAX()` summarize numeric columns.
+- `GROUP BY` defines the category or categories used for summaries.
+- `HAVING` filters aggregated results; `WHERE` filters detail rows before aggregation.
+- `ROUND(value, decimals)` controls the displayed precision of a calculation.
+
+### When to Use It
+
+Use aggregation when the analytical question asks for totals, averages, counts, minimums, maximums, or comparisons across categories. Grouping is useful for campaign, channel, customer segment, product, or time-period reporting.
+
+### SQL Example
+
+```sql
+SELECT
+  country,
+  COUNT(*) AS film_count,
+  ROUND(AVG(duration), 1) AS average_duration
+FROM films
+GROUP BY country
+HAVING COUNT(*) >= 10
+ORDER BY film_count DESC;
+```
+
+### Explanation
+
+The query creates one row per country, counts the films from each country, and calculates the average duration. `HAVING` keeps only countries with at least ten films, and `ORDER BY` places the countries with the largest film catalogs first.
+
+### CEP Application
+
+The same pattern could summarize campaign performance by channel: count conversions, total revenue, and average order value for each channel. `HAVING` could then identify channels with enough observations to support a meaningful comparison.
+
+## Data Transformation
+
+### Main Ideas
+
+Transformations create useful analytical fields from existing columns. Arithmetic operators can calculate revenue, costs, rates, and differences. More complex transformations can calculate a percentage of a total by combining an aggregate with a subquery or common table expression.
+
+### Important SQL Syntax
+
+- Arithmetic operators include `+`, `-`, `*`, and `/`.
+- `AS` gives a calculated expression a readable alias.
+- `NULLIF(denominator, 0)` prevents division-by-zero errors.
+- A subquery or CTE can calculate an intermediate total before the outer query uses it.
+- `ROUND()` makes ratios and percentages easier to report.
+
+### When to Use It
+
+Use transformations when the raw table does not contain the exact metric needed. Common examples include conversion rate, return on ad spend, profit, average order value, and a category's percentage of total activity.
+
+### SQL Example
+
+```sql
+SELECT
+  country,
+  COUNT(*) AS film_count,
+  ROUND(
+    100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM films), 0),
+    2
+  ) AS percent_of_films
+FROM films
+GROUP BY country
+ORDER BY percent_of_films DESC;
+```
+
+### Explanation
+
+The grouped count is divided by the total number of films returned by the subquery. Multiplying by `100.0` produces a percentage, while `NULLIF` protects the calculation if the denominator is zero. The result shows each country's share of the full film table.
+
+### CEP Application
+
+For marketing data, this can calculate each channel's share of total leads or revenue. It can also be adapted to calculate click-through rate or conversion rate, provided the numerator and denominator are defined consistently.
+
+## Data Filtering
+
+### Main Ideas
+
+Filtering narrows a dataset to the records relevant to a question. `WHERE` applies conditions before grouping. `AND` requires every condition to be true, `OR` allows either condition, `BETWEEN` checks an inclusive range, and `LIKE` searches for text patterns. `IS NULL` and `IS NOT NULL` are used to test missing values.
+
+### Important SQL Syntax
+
+- `WHERE` filters individual rows.
+- `AND` and `OR` combine logical conditions; parentheses make the intended logic clear.
+- `BETWEEN lower_value AND upper_value` checks an inclusive range.
+- `LIKE 'pattern%'` matches text patterns; `%` represents any number of characters.
+- `IS NULL` identifies missing values.
+- `NOT` reverses a condition.
+
+### When to Use It
+
+Use filtering when only a particular date range, category, text pattern, or quality condition should be analyzed. Apply row-level filters before aggregation so that summary values are calculated from the intended population.
+
+### SQL Example
+
+```sql
+SELECT
+  title,
+  release_year,
+  country,
+  duration
+FROM films
+WHERE release_year BETWEEN 2000 AND 2020
+  AND (country LIKE '%United States%' OR country LIKE '%Canada%')
+  AND duration IS NOT NULL
+ORDER BY release_year DESC;
+```
+
+### Explanation
+
+The query returns films released from 2000 through 2020 that include the United States or Canada in the country field and have a known duration. Parentheses ensure that the `OR` condition is evaluated together with the other required conditions.
+
+### CEP Application
+
+A marketing analyst could filter web sessions to a campaign's active dates, restrict results to selected countries, and exclude records with missing campaign identifiers before calculating engagement or conversion metrics.
+
+## Conditional Operations
+
+### Main Ideas
+
+Conditional operations apply different logic to different records. `CASE WHEN` creates categories or conditional values. Conditional aggregation combines a condition with an aggregate function so that several related metrics can be calculated in one grouped query.
+
+### Important SQL Syntax
+
+- `CASE WHEN condition THEN value ELSE value END` creates a conditional expression.
+- `COUNT(CASE WHEN ... THEN 1 END)` counts rows meeting a condition.
+- `SUM(CASE WHEN ... THEN amount ELSE 0 END)` totals only qualifying values.
+- `AVG(CASE WHEN ... THEN value END)` calculates an average for a subset.
+- Use explicit aliases so the resulting metrics are easy to interpret.
+
+### When to Use It
+
+Use conditional transformations to classify records into business categories. Use conditional aggregation when a report needs multiple segment-specific measures in the same row, such as total orders and high-value orders by channel.
+
+### SQL Example
+
+```sql
+SELECT
+  country,
+  COUNT(*) AS total_films,
+  COUNT(CASE WHEN duration >= 120 THEN 1 END) AS long_films,
+  CASE
+    WHEN COUNT(*) >= 50 THEN 'large catalog'
+    WHEN COUNT(*) >= 10 THEN 'medium catalog'
+    ELSE 'small catalog'
+  END AS catalog_size
+FROM films
+GROUP BY country
+ORDER BY total_films DESC;
+```
+
+### Explanation
+
+The query counts every film and separately counts films lasting at least 120 minutes. The `CASE` expression then labels each country based on its total number of films. Both conditional metrics are calculated while the rows are grouped by country.
+
+### CEP Application
+
+This pattern could classify customers as new, returning, or high-value and calculate segment-specific conversions in one report. It can also support survey analysis by counting respondents who selected a target response while preserving totals for each demographic or campaign group.
+
+# Overall Reflection and Future Reference
+
+The most useful intermediate SQL concepts were aggregation, grouping, filtering, and conditional calculations. They turn row-level records into business measures that can be compared across channels, customer groups, and time periods.
+
+The most challenging concepts were keeping `WHERE` and `HAVING` separate and understanding how multi-condition logic changes when `AND` and `OR` are combined. I resolved this by identifying whether a condition applies to individual rows or grouped results, and by using parentheses whenever the logic contains both operators.
+
+This course extended Introduction to SQL by moving from selecting and inspecting fields to building reusable analytical summaries. It also made the order of SQL operations more important: filtering, grouping, aggregating, and then filtering groups produce different results when used in the wrong sequence.
+
+In BigQuery, these patterns can be applied to fully qualified tables and large event datasets. BigQuery would allow the same logic to summarize GA4 events, campaign data, transactions, or survey responses, while CTEs and clear aliases would keep longer analytical queries readable.
+
+For digital marketing analytics and the CEP, intermediate SQL can support channel comparisons, conversion-funnel analysis, customer segmentation, campaign-period reporting, survey response summaries, and quality checks for missing or inconsistent data. I expect to consult the aggregation and conditional-operation sections most often because they provide reusable patterns for turning raw records into decision-ready metrics.
+
+# Appendix: Publication Links
+
+- [GitHub Repository](https://github.com/brianvuong1/ibm-6500-sql-portfolio)
+- [Published Intermediate SQL Report](https://brianvuong1.github.io/ibm-6500-sql-portfolio/intermediate-sql.html)
+- [Published Portfolio Landing Page](https://brianvuong1.github.io/ibm-6500-sql-portfolio/index.html)
